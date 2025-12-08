@@ -2,7 +2,3 @@ app:
   name: health_tracker
   version: 1.0
   debug: false
-
-logging:
-  level: INFO
-  file: logs/app.log

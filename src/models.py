@@ -1,6 +1,7 @@
+from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
-from string import Template
+from typing import List
 
 class ActivityType(Enum):
     SLOW_WALKING = 2.0
@@ -15,19 +16,24 @@ class ActivityType(Enum):
 @dataclass
 class Activity:
     name: str
-    activity_type: str
+    activity_type: ActivityType
     duration_min: int
     calories_burned: float = 0.0
 
-    def calculate_calories_burned(self, person: Person) -> float:
-        self.calories_burned = (ActivityType[self.activity_type].value * 3.5 * person.weight_kg / 200) * self.duration_min
+    def __post_init__(self):
+        if self.duration_min <= 0:
+            raise ValueError("duration_min must be positive")
+
+    def calculate_calories_burned(self, person: 'Person') -> float:
+        met = self.activity_type.value
+        self.calories_burned = (met * 3.5 * person.weight_kg / 200) * self.duration_min
         return self.calories_burned
 
     def __str__(self) -> str:
-        return f'Activity: {self.name}, Duration: {self.duration_min} mins, Calories Burned: {self.calories_burned:.2f} kcal'
+        return f'Activity: {self.name}, Type: {self.activity_type.name}, Duration: {self.duration_min} mins, Calories Burned: {self.calories_burned:.2f} kcal'
 
-    def __repr__(self) -> Template:
-        return t'Activity(name={self.name}, activity_type={self.activity_type}, duration={self.duration_min}, calories_burned={self.calories_burned})'
+    def __repr__(self) -> str:
+        return f'Activity(name={self.name!r}, activity_type={self.activity_type.name!r}, duration_min={self.duration_min!r}, calories_burned={self.calories_burned!r})'
 
 @dataclass
 class Person:
@@ -36,11 +42,11 @@ class Person:
     gender: str
     weight_kg: float
     height_cm: float
-    activities: list[Activity] = field(default_factory=list)
-    bmi: float = 0
+    activities: List[Activity] = field(default_factory=list)
+    bmi: float = 0.0
 
     def __post_init__(self):
-        self.gender = self.gender.upper()
+        self.gender = (self.gender or "").upper()
         if self.gender not in {"M", "F"}:
             raise ValueError("gender must be 'M' or 'F'")
         if self.height_cm <= 0:
@@ -57,7 +63,15 @@ class Person:
         self.activities.append(activity)
 
     def __str__(self):
-        return f'Name: {self.name}\nAge: {self.age}\nGender: {self.gender}\nWeight (in kg): {self.weight_kg}\nHeight (in cm): {self.height_cm}'
+        return (
+            f'Name: {self.name}\n'
+            f'Age: {self.age}\n'
+            f'Gender: {self.gender}\n'
+            f'Weight (kg): {self.weight_kg}\n'
+            f'Height (cm): {self.height_cm}\n'
+            f'BMI: {self.bmi:.2f}\n'
+            f'Activities: {len(self.activities)}'
+        )
 
     def __repr__(self):
-        return t'Person(name={self.name}, age={self.age}, gender={self.gender}, weight_kg={self.weight_kg}, height_cm={self.height_cm}, bmi={self.bmi}, activities={self.activities})'
+        return f'Person(name={self.name!r}, age={self.age!r}, gender={self.gender!r}, weight_kg={self.weight_kg!r}, height_cm={self.height_cm!r}, bmi={self.bmi!r}, activities={self.activities!r})'

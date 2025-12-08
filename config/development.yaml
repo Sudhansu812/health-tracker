@@ -1,10 +1,6 @@
 app:
   debug: true
 
-logging:
-  level: INFO
-  file: logs/app.log
-
 database:
   host: localhost
   port: 5423
